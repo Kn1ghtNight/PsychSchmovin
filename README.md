@@ -3,7 +3,7 @@
 
 
 <p align="center">
-  <img src="https://github.com/Kn1ghtNight/PsychSchmovin/blob/main/psychschmovin.png?raw=true" alt="Psych Schmovin' Logo"/>
+  <img src="https://github.com/Kn1ghtNight/PsychSchmovin/blob/main/psychschmovin.png?raw=true" alt="Psych Schmovin' Logo" width="310"/>
 </p>
 
 ## KNOWN BUGS
