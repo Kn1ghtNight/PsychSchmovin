@@ -159,7 +159,7 @@ class PlayState extends MusicBeatState
 	public var unspawnNotes:Array<Note> = [];
 	public var eventNotes:Array<EventNote> = [];
 
-	private var strumLine:FlxSprite;
+	public var strumLine:FlxSprite;
 
 	//Handles the new epic mega sexy cam code that i've done
 	public var camFollow:FlxPoint;
@@ -389,7 +389,7 @@ class PlayState extends MusicBeatState
 		practiceMode = ClientPrefs.getGameplaySetting('practice', false);
 		cpuControlled = ClientPrefs.getGameplaySetting('botplay', false);
 
-		// var gameCam:FlxCamera = FlxG.camera;
+		var gameCam:FlxCamera; // camGame copy so cam movement can work idk why lol
 		camGame = new FlxCamera();
 		camHUD = new FlxCamera();
 		camOther = new FlxCamera();
@@ -397,9 +397,13 @@ class PlayState extends MusicBeatState
 		camOther.bgColor.alpha = 0;
 
 		FlxG.cameras.reset(camGame);
+		Main.schmovin.afterCameras(camGame, camHUD);
 		FlxG.cameras.add(camHUD, false);
 		FlxG.cameras.add(camOther, false);
 		grpNoteSplashes = new FlxTypedGroup<NoteSplash>();
+
+		@:privateAccess
+		gameCam = Main.schmovin.instance.camGame;
 
 		FlxG.cameras.setDefaultDrawTarget(camGame, true);
 		CustomFadeTransition.nextCamera = camOther;
@@ -1104,10 +1108,10 @@ class PlayState extends MusicBeatState
 		}
 		add(camFollowPos);
 
-		FlxG.camera.follow(camFollowPos, LOCKON, 1);
+		gameCam.follow(camFollowPos, LOCKON, 1);
 		// FlxG.camera.setScrollBounds(0, FlxG.width, 0, FlxG.height);
 		FlxG.camera.zoom = defaultCamZoom;
-		FlxG.camera.focusOn(camFollow);
+		gameCam.focusOn(camFollow);
 
 		FlxG.worldBounds.set(0, 0, FlxG.width, FlxG.height);
 
@@ -1373,6 +1377,8 @@ class PlayState extends MusicBeatState
 
 		super.create();
 
+		Main.schmovin.postUI(this);
+
 		cacheCountdown();
 		cachePopUpScore();
 		for (key => type in precacheList)
@@ -1391,6 +1397,13 @@ class PlayState extends MusicBeatState
 		Paths.clearUnusedMemory();
 		
 		CustomFadeTransition.nextCamera = camOther;
+	}
+
+	override public function draw():Void
+	{
+		Main.schmovin.preDraw(this);
+		super.draw();
+		Main.schmovin.postDraw(this);
 	}
 
 	#if (!flash && sys)
@@ -2128,6 +2141,7 @@ class PlayState extends MusicBeatState
 				return;
 			}
 
+			Main.schmovin.onCountdown(this);
 			startTimer = new FlxTimer().start(Conductor.crochet / 1000 / playbackRate, function(tmr:FlxTimer)
 			{
 				if (gf != null && tmr.loopsLeft % Math.round(gfSpeed * gf.danceEveryNumBeats) == 0 && gf.animation.curAnim != null && !gf.animation.curAnim.name.startsWith("sing") && !gf.stunned)
@@ -2520,6 +2534,8 @@ class PlayState extends MusicBeatState
 						sustainNote.parent = swagNote;
 						unspawnNotes.push(sustainNote);
 
+						Main.schmovin.postNotePosition(this, strumLine, swagNote, SONG);
+
 						if (sustainNote.mustPress)
 						{
 							sustainNote.x += FlxG.width / 2; // general offset
@@ -2873,6 +2889,7 @@ class PlayState extends MusicBeatState
 
 	override public function update(elapsed:Float)
 	{
+		Main.schmovin.update(this, elapsed);
 		/*if (FlxG.keys.justPressed.NINE)
 		{
 			iconP1.swapOldIcon();
@@ -4028,6 +4045,7 @@ class PlayState extends MusicBeatState
 					} else {
 						cancelMusicFadeTween();
 						LoadingState.loadAndSwitchState(new PlayState());
+						Main.schmovin.onExitPlayState(new PlayState());
 					}
 				}
 			}
@@ -4040,6 +4058,7 @@ class PlayState extends MusicBeatState
 					CustomFadeTransition.nextCamera = null;
 				}
 				MusicBeatState.switchState(new FreeplayState());
+				Main.schmovin.onExitPlayState(new FreeplayState());
 				FlxG.sound.playMusic(Paths.music('freakyMenu'));
 				changedDifficulty = false;
 			}
@@ -4158,7 +4177,6 @@ class PlayState extends MusicBeatState
 		}
 
 		rating.loadGraphic(Paths.image(pixelShitPart1 + daRating.image + pixelShitPart2));
-		rating.cameras = [camHUD];
 		rating.screenCenter();
 		rating.x = coolText.x - 40;
 		rating.y -= 60;
@@ -4236,7 +4254,6 @@ class PlayState extends MusicBeatState
 		for (i in seperatedScore)
 		{
 			var numScore:FlxSprite = new FlxSprite().loadGraphic(Paths.image(pixelShitPart1 + 'num' + Std.int(i) + pixelShitPart2));
-			numScore.cameras = [camHUD];
 			numScore.screenCenter();
 			numScore.x = coolText.x + (43 * daLoop) - 90;
 			numScore.y += 80;
