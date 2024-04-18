@@ -8,11 +8,11 @@
 
 ## KNOWN BUGS
 
-- [] Incorrect sustain rendering
-- [] Incorrect note splash rendering
+- [ ] Incorrect sustain rendering
+- [ ] Incorrect note splash rendering
 probably more but im fucking tired
 
 ## FEATURES TO COME
-- [] Modfiles to be read by schmovin
-- [] Easier ability to create modifiers
-- [] etc. (suggest some on issues or pr it yourself)
+- [ ] Modfiles to be read by schmovin
+- [ ] Easier ability to create modifiers
+- [ ] etc. (suggest some on issues or pr it yourself)
